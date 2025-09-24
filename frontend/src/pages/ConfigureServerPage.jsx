@@ -7,7 +7,7 @@ import { getMappingGateways, getRoutingGateways, getMappingGatewayDetails, getRo
 import ServerSelector from '../components/ServerSelector';
 import PageTitle from '../components/PageTitle';
 import { ArrowLeftOutlined } from '@ant-design/icons';
-
+import SearchInput from '../components/SearchInput';
 const { Search } = Input;
 const { Title } = Typography;
 
@@ -23,7 +23,9 @@ const ConfigureServerPage = () => {
   const [selectedMg, setSelectedMg] = useState(null);
   const [selectedRg, setSelectedRg] = useState(null);
   const [detailLoading, setDetailLoading] = useState(false);
-
+  const [showFullRules, setShowFullRules] = useState(false);
+  const [showFullCallerPrefixes, setShowFullCallerPrefixes] = useState(false);
+  const [showFullRewriteRules, setShowFullRewriteRules] = useState(false);
   useEffect(() => {
     // Reset mọi thứ khi server thay đổi
     if (selectedServer) {
@@ -102,6 +104,7 @@ const ConfigureServerPage = () => {
 
   const renderMgDetailView = () => (
     <Spin spinning={detailLoading} tip="Loading Details...">
+      <div style={{ marginTop: 20, marginBottom: 20 }}></div>
       <Button 
         icon={<ArrowLeftOutlined />} 
         onClick={() => setSelectedMg(null)} 
@@ -111,24 +114,65 @@ const ConfigureServerPage = () => {
       </Button>
       {selectedMg && (
         <>
-          <Title level={4}>Operating on MG: <Tag color="blue">{selectedMg.name}</Tag></Title>
+        <div style={{ marginTop: 20, marginBottom: 20 }}></div>
+          <Title level={4}>
+            Operating on MG:{' '}
+            <Tag
+              color="pink"
+              style={{
+                fontSize: '16px',      // chữ to hơn
+                padding: '6px 12px',   // tăng vùng nền
+                height: 'auto',        // cho phép co giãn
+                lineHeight: '20px',    // cân giữa chữ
+              }}
+            >
+              {selectedMg.name}
+            </Tag>
+            <div style={{ marginTop: 20, marginBottom: 20 }}></div>
+          </Title>
           <Row gutter={[16, 16]}>
             <Col xs={24} md={14}>
-              <Title level={5}>Mapping Gateway Details</Title>
-              <Descriptions bordered column={1} size="small">
-                <Descriptions.Item label="Name">{selectedMg.name}</Descriptions.Item>
-                <Descriptions.Item label="Account">{selectedMg.account}</Descriptions.Item>
-                <Descriptions.Item label="CalloutCallerPrefixes">{selectedMg.calloutCallerPrefixes}</Descriptions.Item>
-                <Descriptions.Item label="CalloutCalleePrefixes">{selectedMg.calloutCalleePrefixes}</Descriptions.Item>
-                <Descriptions.Item label="Capacity">{selectedMg.capacity}</Descriptions.Item>
-                <Descriptions.Item label="Status">
-                  <Tag color={selectedMg.lockType === 1 ? 'volcano' : 'green'}>{selectedMg.lockType === 1 ? 'LOCKED' : 'ACTIVE'}</Tag>
+              <Descriptions
+                bordered
+                column={1}
+                size="middle"        // nhìn gọn hơn size="small"
+                labelStyle={{ width: '30%', fontWeight: 500, background: '#fafafa' }}
+                contentStyle={{ background: '#fff' }}
+              >
+                <Descriptions.Item label="Name">
+                  <Typography.Text strong>{selectedMg.name}</Typography.Text>
                 </Descriptions.Item>
-                <Descriptions.Item label="Register Type">{selectedMg.registerType === 1 ? 'Dynamic' : 'Static'}</Descriptions.Item>
-                <Descriptions.Item label="Remote IPs">{selectedMg.remoteIps}</Descriptions.Item>
+                <Descriptions.Item label="Account">
+                  {selectedMg.account}
+                </Descriptions.Item>
+                <Descriptions.Item label="Callout Caller Prefixes">
+                  <Typography.Paragraph copyable ellipsis={{ rows: 2 }}>
+                    {selectedMg.calloutCallerPrefixes}
+                  </Typography.Paragraph>
+                </Descriptions.Item>
+                <Descriptions.Item label="Callout Callee Prefixes">
+                  <Typography.Paragraph copyable ellipsis={{ rows: 2 }}>
+                    {selectedMg.calloutCalleePrefixes}
+                  </Typography.Paragraph>
+                </Descriptions.Item>
+                <Descriptions.Item label="Capacity">
+                  {selectedMg.capacity}
+                </Descriptions.Item>
+                <Descriptions.Item label="Status">
+                  <Tag color={selectedMg.lockType === 1 ? 'volcano' : 'green'}>
+                    {selectedMg.lockType === 1 ? 'LOCKED' : 'ACTIVE'}
+                  </Tag>
+                </Descriptions.Item>
+                <Descriptions.Item label="Register Type">
+                  {selectedMg.registerType === 1 ? 'Dynamic' : 'Static'}
+                </Descriptions.Item>
+                <Descriptions.Item label="Remote IPs">
+                  <Typography.Paragraph copyable ellipsis={{ rows: 2 }}>
+                    {selectedMg.remoteIps}
+                  </Typography.Paragraph>
+                </Descriptions.Item>
               </Descriptions>
-            </Col>
-            <Col xs={24} md={10}>
+
               <Title level={5}>Actions</Title>
               <Card>
                 {/* Chúng ta sẽ thêm các form hành động vào đây ở bước sau */}
@@ -143,6 +187,7 @@ const ConfigureServerPage = () => {
   
   const renderRgDetailView = () => (
      <Spin spinning={detailLoading} tip="Loading Details...">
+      <div style={{ marginTop: 20, marginBottom: 20 }}></div>
       <Button 
         icon={<ArrowLeftOutlined />} 
         onClick={() => setSelectedRg(null)} 
@@ -152,17 +197,75 @@ const ConfigureServerPage = () => {
       </Button>
       {selectedRg && (
         <>
-          <Title level={4}>Operating on RG: <Tag color="purple">{selectedRg.name}</Tag></Title>
+        <div style={{ marginTop: 20, marginBottom: 20 }}></div>
+          <Title level={4}>
+            Operating on RG:{' '}
+            <Tag
+              color="orange"
+              style={{
+                fontSize: '16px',      // chữ to hơn
+                padding: '6px 12px',   // tăng vùng nền
+                height: 'auto',        // cho phép co giãn
+                lineHeight: '20px',    // cân giữa chữ
+              }}
+            >
+              {selectedRg.name}
+            </Tag>
+            <div style={{ marginTop: 20, marginBottom: 20 }}></div>
+          </Title>
            <Row gutter={[16, 16]}>
-            <Col xs={24} md={14}>
-              <Title level={5}>Routing Gateway Details</Title>
-              <Descriptions bordered column={1} size="small">
-                 {/* Thêm các trường chi tiết của RG tại đây */}
-                 <Descriptions.Item label="Name">{selectedRg.name}</Descriptions.Item>
-                 <Descriptions.Item label="CallinCallerPrefixes">{selectedRg.callinCallerPrefixes}</Descriptions.Item>
-                 <Descriptions.Item label="CallinCalleePrefixes">{selectedRg.callinCalleePrefixes}</Descriptions.Item>
-                 <Descriptions.Item label="RewriteRulesInCaller">{selectedRg.rewriteRulesInCaller}</Descriptions.Item>
-              </Descriptions>
+              <Col xs={24} md={14}>
+              <Descriptions
+                bordered
+                column={1}
+                size="middle"        // nhìn gọn hơn size="small"
+                labelStyle={{ width: '30%', fontWeight: 500, background: '#fafafa' }}
+                contentStyle={{ background: '#fff' }}
+              >
+                  <Descriptions.Item label="Name">
+                    <Typography.Text strong>{selectedRg.name}</Typography.Text>
+                  </Descriptions.Item>
+                  <Descriptions.Item label="CallinCallerPrefixes">
+                    <div
+                      style={{
+                        maxHeight: showFullCallerPrefixes ? 'none' : '63px',
+                        overflow: 'hidden',
+                        whiteSpace: 'pre-wrap',
+                      }}
+                    >
+                      {selectedRg.callinCallerPrefixes} {/* đúng field */}
+                    </div>
+                    <Button
+                      type="link"
+                      onClick={() => setShowFullCallerPrefixes(!showFullCallerPrefixes)}
+                      style={{ padding: 0 }}
+                    >
+                      {showFullCallerPrefixes ? 'less' : 'more'}
+                    </Button>
+                  </Descriptions.Item>
+
+                  <Descriptions.Item label="CallinCalleePrefixes">
+                    {selectedRg.callinCalleePrefixes}
+                  </Descriptions.Item>
+                  <Descriptions.Item label="RewriteRulesInCaller">
+                    <div
+                      style={{
+                        maxHeight: showFullRewriteRules ? 'none' : '63px',
+                        overflow: 'hidden',
+                        whiteSpace: 'pre-wrap',
+                      }}
+                    >
+                      {selectedRg.rewriteRulesInCaller}
+                    </div>
+                    <Button
+                      type="link"
+                      onClick={() => setShowFullRewriteRules(!showFullRewriteRules)}
+                      style={{ padding: 0 }}
+                    >
+                      {showFullRewriteRules ? 'less' : 'more'}
+                    </Button>
+                  </Descriptions.Item>
+                </Descriptions>
             </Col>
             <Col xs={24} md={10}>
               <Title level={5}>Actions</Title>
@@ -220,26 +323,34 @@ const ConfigureServerPage = () => {
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
       <div style={{ textAlign: 'center' }}>
         <PageTitle>Server Configuration</PageTitle>
-      </div>
-
-      <Card style={{ marginBottom: '24px' }} className="raised-card">
-        <ServerSelector />
-      </Card>
-
+      </div> 
+            <div className="inline-selector-container">
+                <Typography.Text style={{ 
+                    fontFamily: 'Poppins, sans-serif', 
+                    fontSize: '20px', 
+                    fontWeight: '500', 
+                    color: '#000000ff' 
+                }}>
+                    You want to config this:
+                </Typography.Text>
+                <ServerSelector />
+            </div>
       {selectedServer ? (
-        <div style={{ flex: 1, overflow: 'hidden' }}>
-          <Card className="raised-card">
+        <div style={{ flex: 1, overflow: 'auto' }}>
             {/* Ẩn thanh tìm kiếm khi đang xem chi tiết */}
+            
             {!selectedMg && !selectedRg && (
-              <Search
+              <div style={{ marginTop: 20, marginBottom: 20 }}>
+              <SearchInput
                 placeholder="Filter gateways by name..."
                 onSearch={onSearch}
                 style={{ marginBottom: 16 }}
                 allowClear
               />
+              </div>
             )}
             <Tabs defaultActiveKey="1" items={tabItems} />
-          </Card>
+          
         </div>
       ) : (
         <Alert message="Please select a server to view its configuration." type="info" showIcon />

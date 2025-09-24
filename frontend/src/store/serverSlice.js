@@ -1,26 +1,46 @@
-import { createSlice } from '@reduxjs/toolkit';
+import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
+import { getServers } from '../api/vosApi';
+
+// Hành động (thunk) để lấy danh sách server từ API
+export const fetchServers = createAsyncThunk('servers/fetchServers', async () => {
+  const response = await getServers();
+  return response;
+});
 
 const initialState = {
-  list: [], // Sẽ dùng để lưu danh sách server sau này
-  selectedServer: null, // Lưu tên server đang được chọn
-  status: 'idle', // Trạng thái: idle, loading, succeeded, failed
+  list: [],
+  // Thay đổi quan trọng nhất là ở đây
+  // Đặt giá trị mặc định là 'VOS-01'
+  selectedServer: 'VOS-01 (171.244.56.166)', 
+  loading: false,
+  error: null,
 };
 
-export const serverSlice = createSlice({
-  name: 'servers', // Tên của slice này
+const serverSlice = createSlice({
+  name: 'servers',
   initialState,
-  // Reducers là các hàm dùng để thay đổi state
   reducers: {
-    setSelectedServer: (state, action) => {
-      // action.payload sẽ là giá trị được truyền vào (tên server)
+    // Action để người dùng có thể chọn một server khác
+    setSelectedServer(state, action) {
       state.selectedServer = action.payload;
     },
-    // Chúng ta sẽ thêm các reducers khác ở đây sau
+  },
+  extraReducers: (builder) => {
+    builder
+      .addCase(fetchServers.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchServers.fulfilled, (state, action) => {
+        state.loading = false;
+        state.list = action.payload;
+      })
+      .addCase(fetchServers.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.error.message;
+      });
   },
 });
 
-// Export các "hành động" (actions) để các component khác có thể sử dụng
 export const { setSelectedServer } = serverSlice.actions;
-
-// Export reducer để kết nối vào store chính
 export default serverSlice.reducer;

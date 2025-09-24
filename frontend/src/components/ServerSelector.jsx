@@ -2,8 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Select, Spin, Alert } from 'antd';
 import { getServers } from '../api/vosApi';
 
-// Imports mới cho Redux
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { setSelectedServer } from '../store/serverSlice';
 
 const ServerSelector = () => {
@@ -11,7 +10,8 @@ const ServerSelector = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  const dispatch = useDispatch(); // Hàm để "gửi" hành động lên store
+  const dispatch = useDispatch();
+  const currentServer = useSelector(state => state.servers.selectedServer);
 
   useEffect(() => {
     const fetchServers = async () => {
@@ -28,8 +28,6 @@ const ServerSelector = () => {
   }, []);
 
   const handleServerChange = (value) => {
-    // Khi người dùng chọn một server, gửi hành động setSelectedServer
-    // với giá trị là tên server (value) lên store
     dispatch(setSelectedServer(value));
   };
 
@@ -38,13 +36,23 @@ const ServerSelector = () => {
 
   return (
     <Select
+      value={currentServer}
       placeholder="Chọn một VOS Server"
-      style={{ width: 350 }}
-      options={servers.map(server => ({
-        label: server.name,
-        value: server.name,
-      }))}
-      onChange={handleServerChange} // <-- GỌI HÀM KHI CÓ THAY ĐỔI
+      // >>> DÒNG NÀY ĐÃ ĐƯỢC SỬA LẠI <<<
+      style={{ minWidth: '350px' }}
+      options={servers.map(server => {
+        const displayUrl = server.url && typeof server.url === 'string' 
+          ? `(${server.url.replace(/^https?:\/\//, '')})` 
+          : '';
+        
+        return {
+          label: `${server.name} ${displayUrl}`.trim(),
+          value: server.name,
+        };
+      })}
+      onChange={handleServerChange}
+      className="custom-server-selector"
+      popupClassName="server-select-dropdown"
     />
   );
 };

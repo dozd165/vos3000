@@ -207,3 +207,78 @@ select,
 .ant-input-number-handler-wrap {
   display: none !important;
 }
+
+/* Bố cục cho cả dòng text và selector */
+.inline-selector-container {
+  display: flex;
+  align-items: baseline;
+  gap: 6px; /* Giảm khoảng cách */
+  flex-wrap: wrap;
+}
+.inline-selector-container .ant-typography {
+    font-size: 20px;
+    font-weight: 500;
+    color: #333;
+}
+
+/* Tùy chỉnh phần hộp của Select để làm nó "tàng hình" */
+.custom-server-selector .ant-select-selector {
+    background-color: transparent !important;
+    border: none !important; /* << XÓA BỎ MỌI ĐƯỜNG VIỀN VÀ GẠCH CHÂN */
+    box-shadow: none !important;
+    padding: 0 !important;
+}
+.custom-server-selector.ant-select-focused .ant-select-selector {
+    box-shadow: none !important;
+}
+
+/* Đồng bộ style chữ của Select với dòng text bên cạnh */
+.custom-server-selector .ant-select-selection-item {
+    font-size: 20px !important;      /* << ĐỒNG BỘ KÍCH THƯỚC */
+    font-weight: 500 !important;     /* << ĐỒNG BỘ ĐỘ ĐẬM */
+    color: #154e97 !important;          /* << ĐỒNG BỘ MÀU SẮC */
+    line-height: normal !important;
+}
+
+/* Ẩn mũi tên dropdown */
+.custom-server-selector .ant-select-arrow {
+    display: none !important;
+}
+
+/* --- Style cho danh sách xổ xuống vẫn giữ nguyên màu xanh để người dùng biết là có thể tương tác --- */
+.server-select-dropdown .ant-select-item-option-content {
+    font-size: 20px;
+    font-weight: 500;
+    color: var(--text-color);
+}
+.server-select-dropdown .ant-select-item-option-active {
+    background-color: #E0F7FA !important;
+}
+.server-select-dropdown .ant-select-item-option-active .ant-select-item-option-content {
+    color: #0077B6 !important;
+}
+.server-select-dropdown .ant-select-item-option-selected {
+    background-color: #B3E5FC !important;
+    font-weight: 600;
+}
+.server-select-dropdown .ant-select-item-option-selected .ant-select-item-option-content {
+    color: #01579B !important;
+}
+.main-content-inner .ant-descriptions-item-content {
+  white-space: pre-wrap !important;
+  word-break: break-all !important;
+
+  /* Thêm !important để đảm bảo style được áp dụng */
+  max-height: 200px !important;
+  overflow-y: auto !important;
+  
+  /* Giúp trình duyệt hiển thị thanh cuộn tốt hơn trong một số trường hợp */
+  display: block; 
+}
+
+.big-tag {
+  font-size: 50px;
+  padding: 6px 12px;
+  height: auto;
+  line-height: 55px;
+}
