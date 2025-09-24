@@ -1,0 +1,165 @@
+﻿Kế Hoạch Chuyển Đổi Kiến Trúc Hệ Thống Quản Lý VOS3000
+Tài liệu phác thảo lộ trình và chiến lược tái cấu trúc Hệ thống Quản lý VOS3000 từ kiến trúc Streamlit đơn khối (monolithic) sang mô hình API Backend và Frontend chuyên biệt.
+1. Bối Cảnh và Tầm Nhìn
+1.1. Hiện Trạng
+Hệ thống Quản lý VOS3000 hiện tại, được xây dựng trên nền tảng Streamlit, đã giải quyết thành công bài toán quản lý tập trung nhiều máy chủ VOS3000, giúp đơn giản hóa và tự động hóa nhiều tác vụ thủ công. Hệ thống đã chứng minh được hiệu quả vượt trội so với việc sử dụng VOS3000 Client truyền thống, giúp giảm đáng kể thời gian vận hành và hạn chế sai sót (tham khảo Phụ lục đánh giá hiệu suất).
+Tuy nhiên, kiến trúc Streamlit hiện tại, với logic nghiệp vụ (backend) và giao diện người dùng (frontend) tích hợp chặt chẽ trong một ứng dụng duy nhất, đang bộc lộ một số hạn chế về lâu dài:
+* Khả năng mở rộng: Khó khăn khi thêm các tính năng phức tạp hoặc tích hợp với các hệ thống bên ngoài.
+* Bảo trì: Việc sửa lỗi hoặc nâng cấp một phần có thể ảnh hưởng đến toàn bộ hệ thống.
+* Bảo mật: Thiếu cơ chế xác thực và phân quyền chuyên nghiệp.
+* Hiệu suất: Các tác vụ quét dữ liệu lớn trên nhiều server có thể bị giới hạn bởi kiến trúc xử lý đơn luồng.
+* Trải nghiệm người dùng (UX): Bị giới hạn bởi các thành phần giao diện có sẵn của Streamlit.
+1.2. Tầm Nhìn Chiến Lược
+Để giải quyết các thách thức trên và xây dựng một nền tảng vững chắc cho tương lai, chúng tôi đề xuất một cuộc tái cấu trúc chiến lược, chuyển đổi hệ thống sang mô hình kiến trúc hiện đại, tách biệt bao gồm:
+1. Backend API (Application Programming Interface): Một máy chủ backend mạnh mẽ, không trạng thái (stateless), đóng gói toàn bộ logic nghiệp vụ và giao tiếp với các VOS3000 server. Backend sẽ cung cấp dữ liệu và chức năng thông qua các endpoint RESTful an toàn.
+2. Frontend Application: Một ứng dụng web độc lập, được xây dựng bằng framework JavaScript hiện đại (như React hoặc Vue.js), mang lại trải nghiệm người dùng phong phú, linh hoạt và tối ưu.
+Việc chuyển đổi này không chỉ là một nâng cấp công nghệ mà còn là một bước đi chiến lược nhằm xây dựng một công cụ quản lý chuyên nghiệp, an toàn và sẵn sàng cho các yêu cầu phát triển trong tương lai.
+2. Mục Tiêu Chuyển Đổi
+Việc tái cấu trúc kiến trúc nhằm đạt được các mục tiêu chính sau:
+* Tăng cường khả năng mở rộng và bảo trì: Tách biệt logic và giao diện giúp các nhóm phát triển có thể làm việc độc lập, dễ dàng nâng cấp và sửa lỗi từng phần mà không ảnh hưởng đến toàn bộ hệ thống.
+* Nâng cao hiệu suất và độ tin cậy: Tối ưu hóa các tác vụ xử lý song song ở backend và tận dụng sức mạnh của các framework frontend hiện đại để mang lại tốc độ phản hồi nhanh hơn.
+* Cải thiện bảo mật: Triển khai các cơ chế xác thực (Authentication) và phân quyền (Authorization) chuyên nghiệp cho API, đảm bảo chỉ những người dùng được phép mới có thể truy cập và thực hiện các thao tác quan trọng.
+* Mở ra khả năng tích hợp: Một API được chuẩn hóa sẽ là nền tảng để dễ dàng tích hợp với các hệ thống khác trong tương lai như CRM, Billing, Mobile App, hoặc các công cụ tự động hóa khác.
+* Mang lại trải nghiệm người dùng (UX) vượt trội: Giao diện được thiết kế chuyên biệt sẽ trở nên trực quan, linh hoạt và chuyên nghiệp hơn, giúp nâng cao năng suất làm việc của quản trị viên.
+3. Lộ Trình Chuyển Đổi Chi Tiết
+Lộ trình được chia thành 3 giai đoạn chính, tập trung vào việc xây dựng nền tảng vững chắc trước khi triển khai các tính năng nâng cao.
+Giai Đoạn 1: Xây Dựng và Hoàn Thiện Backend API (Thời gian dự kiến: 2-3 Tuần)
+Mục tiêu: Tạo ra một API RESTful toàn diện, an toàn và hiệu quả, loại bỏ hoàn toàn sự phụ thuộc của logic nghiệp vụ vào Streamlit.
+Các bước thực hiện:
+1. Tái cấu trúc và tách biệt Logic Backend:
+   * Hành động: Xóa bỏ hoàn toàn việc sử dụng sys.modules để truy cập st.session_state trong tất cả các file *_management.py.
+   * Nguyên tắc: Các hàm backend chỉ nhận dữ liệu đầu vào qua tham số và trả về kết quả, không phụ thuộc vào bất kỳ trạng thái giao diện nào.
+2. Lựa chọn Công nghệ và Xây dựng Nền tảng API:
+   * Công nghệ đề xuất: FastAPI.
+   * Lý do: Hiệu suất vượt trội, tích hợp sẵn tính năng xác thực dữ liệu (Pydantic) và tự động tạo tài liệu API tương tác (Swagger UI), giúp đẩy nhanh quá trình phát triển và kiểm thử.
+   * Hành động:
+      * Cài đặt các thư viện cần thiết: fastapi, uvicorn, pydantic.
+      * Tạo file main.py làm điểm khởi đầu cho ứng dụng FastAPI.
+      * Di chuyển logic từ api_server.py (Flask) sang main.py và tái cấu trúc theo chuẩn FastAPI.
+3. Thiết Kế và Triển Khai Các API Endpoints:
+   * Nguyên tắc: Thiết kế các endpoint theo chuẩn RESTful, sử dụng các phương thức HTTP (GET, POST, PUT, DELETE) một cách hợp lý.
+   * Hành động: Ánh xạ các chức năng nghiệp vụ hiện có sang các API endpoint. (Xem chi tiết tại Phụ lục A: Sơ đồ Ánh xạ API Endpoints).
+4. Xây Dựng Cơ Chế Bảo Mật API:
+   * Giải pháp đề xuất: Xác thực bằng API Key.
+   * Hành động:
+      * Triển khai middleware trong FastAPI để kiểm tra X-API-KEY trong header của mỗi request.
+      * Lưu trữ danh sách API key hợp lệ trong biến môi trường hoặc file cấu hình an toàn.
+      * Trả về lỗi 401 Unauthorized nếu API key không hợp lệ hoặc không được cung cấp.
+Giai Đoạn 2: Phát Triển Ứng Dụng Frontend (Thời gian dự kiến: 3-4 Tuần)
+Mục tiêu: Xây dựng một giao diện người dùng hiện đại, tốc độ cao và thân thiện, thay thế hoàn toàn ứng dụng Streamlit.
+Các bước thực hiện:
+1. Lựa chọn Bộ Công Cụ (Tech Stack):
+   * Framework: React (sử dụng Vite để khởi tạo dự án).
+   * Thư viện UI: Ant Design (cung cấp bộ component mạnh mẽ cho ứng dụng doanh nghiệp).
+   * Quản lý Trạng thái: Redux Toolkit (giải pháp quản lý trạng thái tập trung và có cấu trúc).
+   * Thư viện gọi API: Axios (cung cấp nhiều tiện ích, bao gồm interceptor để tự động đính kèm API Key).
+2. Tái Cấu Trúc Giao Diện Dưới Dạng Component:
+   * Hành động: Phân tích giao diện app.py và chia nhỏ thành các component React có thể tái sử dụng (ServerSelector.jsx, CustomerSearchForm.jsx, CustomerTable.jsx, GatewayCleanupWizard.jsx, v.v.).
+3. Xây Dựng Các Trang và Tích Hợp API:
+   * Hành động:
+      * Tạo các trang (routes) tương ứng với các mục trong menu.
+      * Sử dụng các component đã tạo để dựng lại giao diện.
+      * Thay thế các lệnh gọi hàm Python bằng việc gọi API Endpoints đã xây dựng ở Giai Đoạn 1 thông qua Axios.
+      * Sử dụng Redux Toolkit để lưu trữ dữ liệu từ API và quản lý trạng thái giao diện.
+Giai Đoạn 3: Triển Khai và Nâng Cao (Thời gian dự kiến: 2-3 Tuần)
+Mục tiêu: Đưa hệ thống vào môi trường production, tối ưu hiệu suất và triển khai các tính năng nâng cao.
+Các bước thực hiện:
+1. Tối Ưu Hiệu Năng Phía Backend:
+   * Hành động: Triển khai xử lý song song cho các tác vụ quét đa server (ví dụ: find_customers_across_all_servers, scan của GatewayCleanup) bằng concurrent.futures.ThreadPoolExecutor để giảm đáng kể thời gian chờ của người dùng.
+2. Triển Khai và Vận Hành (Deployment):
+   * Containerization (Docker):
+      * Viết Dockerfile cho ứng dụng FastAPI backend.
+      * Viết Dockerfile đa giai đoạn cho ứng dụng React frontend.
+      * Tạo docker-compose.yml để liên kết các service: Nginx (reverse proxy), Backend API, và Frontend.
+   * Máy chủ Production:
+      * Backend: Sử dụng Gunicorn với Uvicorn worker để chạy ứng dụng FastAPI.
+      * Reverse Proxy: Cấu hình Nginx để điều hướng request /api/* đến Gunicorn và các request khác đến file tĩnh của frontend.
+3. Hoàn Thiện Tính Năng Nâng Cao (Phát hiện Xung đột):
+   * Hành động: Triển khai cơ chế Optimistic Locking để ngăn chặn "Lost Update".
+   * Luồng hoạt động:
+      1. Khi Frontend lấy dữ liệu, Backend sẽ trả về cả dữ liệu và một hash của dữ liệu đó.
+      2. Khi Frontend gửi yêu cầu cập nhật, nó sẽ gửi kèm cả payload và hash ban đầu.
+      3. Backend sẽ tính toán lại hash của dữ liệu mới nhất trên server. Nếu hash này khác với hash mà Frontend gửi lên, Backend sẽ trả về lỗi 409 Conflict, báo hiệu dữ liệu đã bị người khác thay đổi.
+      4. Frontend sẽ xử lý lỗi này và thông báo cho người dùng.
+4. Cấu Trúc Dự Án Đề Xuất
+vos3000-management/
+├── backend/
+│   ├── app/
+│   │   ├── api/              # Chứa các file định nghĩa API endpoints
+│   │   │   ├── customers.py
+│   │   │   └── gateways.py
+│   │   ├── core/             # Chứa cấu hình của backend
+│   │   │   └── config.py
+│   │   ├── services/         # Chứa logic nghiệp vụ (các file *_management.py)
+│   │   │   ├── customer_service.py
+│   │   │   └── gateway_service.py
+│   │   └── main.py           # File khởi chạy FastAPI
+│   ├── Dockerfile
+│   └── requirements.txt
+├── frontend/
+│   ├── src/
+│   │   ├── api/              # Chứa các hàm gọi API backend
+│   │   ├── components/       # Chứa các UI component tái sử dụng
+│   │   ├── pages/            # Chứa các trang chính của ứng dụng
+│   │   ├── store/            # Chứa logic quản lý trạng thái (Redux)
+│   │   ├── App.jsx
+│   │   └── main.jsx
+│   ├── Dockerfile
+│   └── package.json
+└── docker-compose.yml
+
+5. Lợi Ích Kỳ Vọng
+Việc hoàn thành kế hoạch chuyển đổi này sẽ mang lại những lợi ích cụ thể, đo lường được:
+* Giảm thời gian vận hành: Các tác vụ phức tạp như dọn dẹp gateway cho hàng nghìn số sẽ giảm từ 1-2 ngày công (với 3-4 người) xuống còn ~15-20 phút (với 1 người).
+* Giảm thiểu tỷ lệ lỗi: Tỷ lệ lỗi do thao tác thủ công trong các tác vụ quan trọng (chỉnh sửa khách hàng, dọn dẹp gateway) sẽ giảm từ 15-30% xuống dưới 5%.
+* Tăng tốc độ phản hồi: Người dùng sẽ nhận được kết quả gần như ngay lập tức cho các tác vụ tìm kiếm và tra cứu nhờ cơ chế xử lý song song.
+* Nền tảng vững chắc: Hệ thống sẽ sẵn sàng cho việc tích hợp và phát triển các tính năng quản lý, báo cáo nâng cao trong tương lai.
+Phụ lục A: Sơ đồ Ánh xạ API Endpoints (Gợi ý)
+Chức năng Nghiệp vụ
+	Phương thức HTTP
+	Endpoint Gợi ý
+	Mô tả Chi tiết
+	get_all_routing_gateways
+	GET
+	/servers/{server_name}/routing-gateways
+	Lấy danh sách tất cả Routing Gateways của một server.
+	get_routing_gateway_details
+	GET
+	/servers/{server_name}/routing-gateways/{rg_name}
+	Lấy thông tin chi tiết của một Routing Gateway cụ thể.
+	update_routing_gateway
+	PUT
+	/servers/{server_name}/routing-gateways/{rg_name}
+	Cập nhật toàn bộ thông tin của một Routing Gateway.
+	find_customers_across_all_servers
+	GET
+	/customers/search
+	Tìm kiếm khách hàng trên tất cả các server. Sử dụng query params: filter_type, filter_text.
+	get_customer_details_for_display
+	GET
+	/servers/{server_name}/customers/{account_id}
+	Lấy thông tin chi tiết của một khách hàng trên một server cụ thể.
+	update_customer_credit_limit
+	PUT
+	/servers/{server_name}/customers/{account_id}/credit-limit
+	Cập nhật (đặt giá trị tuyệt đối) hạn mức tín dụng.
+	update_customer_lock_status
+	PUT
+	/servers/{server_name}/customers/{account_id}/lock-status
+	Cập nhật trạng thái khóa/mở của tài khoản.
+	identify_rgs_for_cleanup_backend
+	POST
+	/cleanup/scan
+	Quét các gateway để tìm các số cần dọn dẹp. Payload: {"numbers": [...]}.
+	apply_rg_update_for_cleanup_backend
+	POST
+	/cleanup/execute
+	Thực hiện việc dọn dẹp dựa trên kết quả quét.
+	find_definitions_for_virtual_keys_backend
+	GET
+	/rewrite-rules/search
+	Tìm kiếm các rewrite rule dựa trên virtual key. Query param: key=....
+	add_real_numbers_to_rule_backend
+	POST
+	/servers/{server_name}/routing-gateways/{rg_name}/rules/{virtual_key}/reals
+	Thêm các số thật mới vào một rewrite rule đã có.
