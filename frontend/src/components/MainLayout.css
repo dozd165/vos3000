@@ -1,0 +1,209 @@
+/* frontend/src/components/MainLayout.css - Cập nhật Font chữ Toàn cục */
+
+/* BƯỚC 1: Import font chữ ở ngay dòng đầu tiên */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap');
+
+/* BƯỚC 2: Tạo quy tắc font chữ toàn cục */
+/* Áp dụng font Poppins cho body và các thành phần chính,
+   bao gồm cả các thẻ input, button, select... để đảm bảo tính nhất quán. */
+body,
+html,
+input,
+button,
+textarea,
+select,
+.ant-typography, /* Nhắm vào các component Typography của Antd */
+.ant-tag, /* Nhắm vào các component Tag của Antd */
+.ant-table /* Nhắm vào toàn bộ bảng */
+{
+  font-family: 'Poppins', sans-serif !important;
+}
+
+
+/* --- CÁC STYLE CŨ GIỮ NGUYÊN --- */
+:root {
+  --main-bg: #f0f2f5;
+  --main-container-bg: #fff;
+  --container-shadow: rgba(100, 100, 111, 0.2) 0px 7px 29px 0px;
+  --text-color: #023E8A; 
+}
+
+.app-container {
+  display: flex;
+  height: 100vh;
+  width: 100%;
+  background-color: var(--main-bg);
+  padding: 10px;
+  gap: 10px;
+  /* Bỏ font-family ở đây vì đã có quy tắc toàn cục */
+}
+/* ... tất cả các style khác trong file giữ nguyên ... */
+
+.sidebar-container {
+  background-color: var(--main-container-bg);
+  box-shadow: var(--container-shadow);
+  border-radius: 10px;
+  padding: 16px;
+  width: 250px;
+  flex-shrink: 0;
+  height: 100%;
+}
+
+.sidebar-wrapper {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.sidebar-list {
+  list-style: none;
+  padding: 0;
+  margin: 20px 0 0;
+}
+.sidebar-listItem a {
+  color: #023E8A; /* Chữ màu xanh navy */
+  display: flex;
+  align-items: center;
+  padding: 12px;
+  border-radius: 8px;
+  text-decoration: none;
+  transition: all .2s ease-in;
+}
+
+/* THAY ĐỔI: Hiệu ứng hover màu xanh nhạt */
+.sidebar-listItem a:hover {
+  background: #E0F7FA;
+  color: #0077B6;
+}
+.sidebar-listItem a:hover .sidebar-listIcon {
+  color: #0077B6;
+}
+
+/* THAY ĐỔI: Hiệu ứng active màu xanh đậm hơn */
+.sidebar-listItem a.active {
+  background-color: #B3E5FC;
+  color: #01579B;
+  font-weight: 600;
+}
+.sidebar-listItem a.active .sidebar-listIcon {
+  color: #01579B;
+}
+
+.sidebar-listIcon {
+  font-size: 18px;
+  width: 24px;
+  height: 24px;
+  margin-right: 16px;
+  flex-shrink: 0;
+  transition: color .2s ease-in;
+}
+.sidebar-listItemText {
+  white-space: nowrap;
+  font-size: 15px;
+}
+
+.sidebar-profileSection {
+  display: flex;
+  align-items: center;
+  margin-top: auto;
+  padding: 8px 10px;
+  border-radius: 8px;
+  transition: background .3s ease-in-out;
+  cursor: pointer;
+}
+.sidebar-profileSection:hover { background-color: #f0f0f0; }
+.sidebar-profileSection img {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin-right: 12px;
+}
+.sidebar-profileSection span {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--text-color);
+  font-weight: 500;
+}
+
+.main-content {
+  flex-grow: 1;
+  height: 100%;
+  overflow-y: hidden;
+}
+.main-content-inner {
+  padding: 24px;
+  background: var(--main-container-bg);
+  border-radius: 10px;
+  box-shadow: var(--container-shadow);
+  height: 100%;
+  overflow-y: auto;
+}
+
+/* THAY ĐỔI: Header của bảng màu xanh */
+.ant-table-thead > tr > th {
+  background-color: #0096C7 !important;
+  color: white !important;
+  font-weight: 600 !important;
+}
+
+.ant-radio-button-wrapper {
+  background: #f0f0f0;
+  border-color: #d9d9d9 !important;
+  color: rgba(0, 0, 0, 0.88);
+  transition: all 0.2s ease-in-out;
+}
+
+/* Khi hover vào nút chưa được chọn */
+.ant-radio-button-wrapper:not(.ant-radio-button-wrapper-checked):hover {
+  background: #e6e6e6;
+  color: #0050b3;
+}
+
+/* Khi một nút được chọn (active) */
+.ant-radio-button-wrapper-checked:not(.ant-radio-button-wrapper-disabled) {
+  background: #0096C7 !important;
+  border-color:#0096C7!important;
+  color: #ffffff !important;
+}
+
+/* Khi hover vào nút đã được chọn, làm nó sáng hơn một chút */
+.ant-radio-button-wrapper-checked:not(.ant-radio-button-wrapper-disabled):hover {
+  background: #0096C7 !important;
+  border-color: #0096C7 !important;
+}
+
+/* Bỏ box-shadow khi focus */
+.ant-radio-button-wrapper:focus-within {
+  box-shadow: none !important;
+}
+.ant-form-item-control-input .ant-input-number {
+  background-color: #f4f2f2 !important;
+  border: none !important;
+  border-radius: 30px !important;
+  box-shadow: none !important;
+  padding: 0.4rem 1rem !important; /* Điều chỉnh padding cho cân đối */
+  width: 100% !important;
+  transition: all ease-in-out .3s;
+}
+
+/* Xóa viền xanh và thêm hiệu ứng shadow khi focus */
+.ant-form-item-control-input .ant-input-number-focused,
+.ant-form-item-control-input .ant-input-number:focus,
+.ant-form-item-control-input .ant-input-number:hover {
+  box-shadow: 0 0 1em #00000013 !important;
+  background-color: #f0eeee !important;
+}
+
+/* Style cho chữ bên trong */
+.ant-input-number-input {
+  color: #646464 !important;
+  padding: 0 !important;
+  height: auto !important;
+}
+
+/* Ẩn các nút tăng/giảm mặc định của InputNumber */
+.ant-input-number-handler-wrap {
+  display: none !important;
+}

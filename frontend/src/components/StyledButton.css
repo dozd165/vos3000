@@ -1,0 +1,38 @@
+/* frontend/src/components/StyledButton.css - THEME MÀU XANH */
+.custom-styled-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-weight: 500;
+  height: 32px;
+  padding: 0 20px;
+  border-radius: 6px;
+  transition: all 0.2s ease-in-out;
+
+  /* THAY ĐỔI: Style nút chính */
+  background-color: #E0F7FA;
+  color: #0096C7;
+  border: 1px solid #ADE8F4;
+}
+
+.custom-styled-button:hover {
+  border-color: #00B4D8;
+  background-color: #CAF0F8;
+}
+
+.custom-styled-button:disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+/* THAY ĐỔI: Style cho nút "danger" (ví dụ: nút Khóa tài khoản) */
+.custom-styled-button.danger {
+  background-color: #FFE5D9;
+  color: #D90429;
+  border-color: #FFB4A2;
+}
+.custom-styled-button.danger:hover {
+  background-color: #FFCDB2;
+  border-color: #EF476F;
+}

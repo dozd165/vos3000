@@ -1,0 +1,21 @@
+/* frontend/src/components/PageTitle.css - Giao diện mới */
+.page-title-container {
+  /* Bỏ nền đen và các style cũ */
+  background-color: transparent;
+  box-shadow: none;
+  padding: 0 0 16px 0; /* Chỉ giữ padding dưới */
+  margin-bottom: 24px;
+  border-bottom: 2px solid #154e97; /* Đường gạch chân màu xanh navy nhạt */
+  text-align: left; /* Căn lề trái */
+}
+
+.page-title-text {
+  font-family: 'Poppins', sans-serif;
+  font-weight: 600;
+  font-size: 1.6rem; /* Tăng kích thước chữ */
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin: 0;
+  /* Dùng màu xanh navy từ theme */
+  color: var(--text-color, #023E8A); 
+}

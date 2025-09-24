@@ -6,7 +6,7 @@ from typing import List, Optional, Dict
 
 # Xóa các import liên quan đến bảo mật: Security, Depends, APIRouter
 from fastapi import FastAPI, HTTPException, Body, Query
-
+from fastapi.middleware.cors import CORSMiddleware
 # =================================================================
 # 2. IMPORT CUSTOM LOGIC & CONFIG
 # =================================================================
@@ -46,7 +46,13 @@ app = FastAPI(
     description="API để quản lý tập trung các VOS3000 server. Lớp bảo mật API Key đã được tạm thời vô hiệu hóa.",
     version="1.1.0-dev"
 )
-
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:5173"],  # Địa chỉ của frontend Vite
+    allow_credentials=True,
+    allow_methods=["*"], # Cho phép tất cả các phương thức (GET, POST, etc.)
+    allow_headers=["*"], # Cho phép tất cả các header
+)
 # =================================================================
 # 4. HELPER FUNCTION
 # =================================================================
