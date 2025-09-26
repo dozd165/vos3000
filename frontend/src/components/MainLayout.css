@@ -276,9 +276,3 @@ select,
   display: block; 
 }
 
-.big-tag {
-  font-size: 50px;
-  padding: 6px 12px;
-  height: auto;
-  line-height: 55px;
-}

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import {
-  Tabs, Table, Input, notification, Alert, Card, Spin, Button, Descriptions, Col, Row, Typography, Tag
+  Tabs, Table, Input, notification, Alert, Card, Spin, Descriptions, Col, Row, Typography, Tag,
 } from 'antd';
 import { useSelector } from 'react-redux';
 import { getMappingGateways, getRoutingGateways, getMappingGatewayDetails, getRoutingGatewayDetails } from '../api/vosApi';
@@ -8,6 +8,8 @@ import ServerSelector from '../components/ServerSelector';
 import PageTitle from '../components/PageTitle';
 import { ArrowLeftOutlined } from '@ant-design/icons';
 import SearchInput from '../components/SearchInput';
+import MappingGatewayActions from '../components/MappingGatewayActions';
+import StyledButton from '../components/StyledButton';
 const { Search } = Input;
 const { Title } = Typography;
 
@@ -26,6 +28,8 @@ const ConfigureServerPage = () => {
   const [showFullRules, setShowFullRules] = useState(false);
   const [showFullCallerPrefixes, setShowFullCallerPrefixes] = useState(false);
   const [showFullRewriteRules, setShowFullRewriteRules] = useState(false);
+  const [showMgActionView, setShowMgActionView] = useState(false);
+  const [showRgActionView, setShowRgActionView] = useState(false);
   useEffect(() => {
     // Reset mọi thứ khi server thay đổi
     if (selectedServer) {
@@ -105,13 +109,17 @@ const ConfigureServerPage = () => {
   const renderMgDetailView = () => (
     <Spin spinning={detailLoading} tip="Loading Details...">
       <div style={{ marginTop: 20, marginBottom: 20 }}></div>
-      <Button 
-        icon={<ArrowLeftOutlined />} 
-        onClick={() => setSelectedMg(null)} 
-        style={{ marginBottom: 16 }}
+      <StyledButton 
+        onClick={() => setSelectedMg(null)}
       >
-        Back to Gateway List
-      </Button>
+        Back 
+      </StyledButton> 
+      <StyledButton 
+          onClick={() => setShowMgActionView(true)}
+          style={{ marginLeft: '20px' }}
+        >
+          Action
+        </StyledButton>
       {selectedMg && (
         <>
         <div style={{ marginTop: 20, marginBottom: 20 }}></div>
@@ -172,12 +180,6 @@ const ConfigureServerPage = () => {
                   </Typography.Paragraph>
                 </Descriptions.Item>
               </Descriptions>
-
-              <Title level={5}>Actions</Title>
-              <Card>
-                {/* Chúng ta sẽ thêm các form hành động vào đây ở bước sau */}
-                <p>Action forms for Add/Delete Prefixes will be here.</p>
-              </Card>
             </Col>
           </Row>
         </>
@@ -188,13 +190,13 @@ const ConfigureServerPage = () => {
   const renderRgDetailView = () => (
      <Spin spinning={detailLoading} tip="Loading Details...">
       <div style={{ marginTop: 20, marginBottom: 20 }}></div>
-      <Button 
+      <StyledButton 
         icon={<ArrowLeftOutlined />} 
         onClick={() => setSelectedRg(null)} 
         style={{ marginBottom: 16 }}
       >
-        Back to Gateway List
-      </Button>
+        Back 
+      </StyledButton>
       {selectedRg && (
         <>
         <div style={{ marginTop: 20, marginBottom: 20 }}></div>
@@ -235,13 +237,13 @@ const ConfigureServerPage = () => {
                     >
                       {selectedRg.callinCallerPrefixes} {/* đúng field */}
                     </div>
-                    <Button
+                    <StyledButton
                       type="link"
                       onClick={() => setShowFullCallerPrefixes(!showFullCallerPrefixes)}
                       style={{ padding: 0 }}
                     >
                       {showFullCallerPrefixes ? 'less' : 'more'}
-                    </Button>
+                    </StyledButton>
                   </Descriptions.Item>
 
                   <Descriptions.Item label="CallinCalleePrefixes">
@@ -257,13 +259,13 @@ const ConfigureServerPage = () => {
                     >
                       {selectedRg.rewriteRulesInCaller}
                     </div>
-                    <Button
+                    <StyledButton
                       type="link"
                       onClick={() => setShowFullRewriteRules(!showFullRewriteRules)}
                       style={{ padding: 0 }}
                     >
                       {showFullRewriteRules ? 'less' : 'more'}
-                    </Button>
+                    </StyledButton>
                   </Descriptions.Item>
                 </Descriptions>
             </Col>
@@ -282,19 +284,44 @@ const ConfigureServerPage = () => {
 
 
   // Nội dung cho từng tab
-  const mgTabContent = selectedMg ? renderMgDetailView() : (
-    <Table 
-      columns={mgColumns} 
-      dataSource={mgList} 
-      rowKey="name" 
-      loading={listLoading} 
-      bordered 
-      onRow={(record) => ({ onClick: () => handleMgRowClick(record) })}
-      rowClassName="clickable-row"
-    />
-  );
+  const mgTabContent = () => {
+    if (!selectedMg) {
+      // 1. View danh sách
+      return (
+        <Table 
+          columns={mgColumns} 
+          dataSource={mgList} 
+          rowKey="name" 
+          loading={listLoading} 
+          bordered 
+          onRow={(record) => ({ onClick: () => handleMgRowClick(record) })}
+          rowClassName="clickable-row"
+        />
+      );
+    } else if (showMgActionView) {
+      // 2. View actions MỚI
+      return (
+        <MappingGatewayActions
+          serverInfo={selectedServer}
+          gatewayDetails={selectedMg}
+          onBack={() => setShowMgActionView(false)}
+          onUpdateSuccess={() => {
+             // Hàm này sẽ được gọi từ component con để làm mới dữ liệu
+             notification.success({ message: 'Gateway updated successfully!' });
+             setShowMgActionView(false); // Quay lại trang chi tiết
+             handleMgRowClick(selectedMg); // Fetch lại data mới
+          }}
+        />
+      );
+    } else {
+      // 3. View chi tiết (như cũ)
+      return renderMgDetailView();
+    }
+  };
 
-  const rgTabContent = selectedRg ? renderRgDetailView() : (
+  const rgTabContent = () => {
+    if (!selectedRg) {
+        return (
     <Table 
       columns={rgColumns} 
       dataSource={rgList} 
@@ -305,17 +332,27 @@ const ConfigureServerPage = () => {
       rowClassName="clickable-row"
     />
   );
-  
+     } else if (showRgActionView) {
+        // return (
+        //     <RoutingGatewayActions 
+        //         // ... props tương tự
+        //     />
+        // );
+        return <div>Routing Gateway Actions Component will be here.</div>
+    } else {
+        return renderRgDetailView();
+    }
+  };
   const tabItems = [
     {
       key: '1',
-      label: `Mapping Gateways (${!selectedMg ? mgList?.length || 0 : 'Detail'})`,
-      children: mgTabContent,
+      label: `Mapping Gateways (${!selectedMg ? mgList?.length || 0 : (showMgActionView ? 'Actions' : 'Detail')})`,
+      children: mgTabContent(), // Gọi hàm để nhận JSX
     },
     {
       key: '2',
-      label: `Routing Gateways (${!selectedRg ? rgList?.length || 0 : 'Detail'})`,
-      children: rgTabContent,
+      label: `Routing Gateways (${!selectedRg ? rgList?.length || 0 : (showRgActionView ? 'Actions' : 'Detail')})`,
+      children: rgTabContent(), // Gọi hàm để nhận JSX
     },
   ];
 
@@ -335,22 +372,31 @@ const ConfigureServerPage = () => {
                 </Typography.Text>
                 <ServerSelector />
             </div>
-      {selectedServer ? (
-        <div style={{ flex: 1, overflow: 'auto' }}>
-            {/* Ẩn thanh tìm kiếm khi đang xem chi tiết */}
-            
-            {!selectedMg && !selectedRg && (
-              <div style={{ marginTop: 20, marginBottom: 20 }}>
-              <SearchInput
-                placeholder="Filter gateways by name..."
-                onSearch={onSearch}
-                style={{ marginBottom: 16 }}
-                allowClear
-              />
-              </div>
-            )}
-            <Tabs defaultActiveKey="1" items={tabItems} />
+        {selectedServer ? (
+        <div style={{ flex: 1, overflow: 'auto', paddingTop: '20px' }}>
           
+          {/* Kiểm tra xem có đang ở chế độ xem chi tiết không */}
+          {selectedMg || selectedRg ? (
+            // Nếu CÓ, chỉ hiển thị nội dung chi tiết mà không có Tabs
+            // Nội dung này được lấy từ các hàm mgTabContent() hoặc rgTabContent()
+            <>
+              {selectedMg ? mgTabContent() : rgTabContent()}
+            </>
+          ) : (
+            // Nếu KHÔNG, hiển thị thanh tìm kiếm và Tabs như cũ
+            <>
+              <div style={{ marginBottom: 20 }}>
+                <SearchInput
+                  placeholder="Filter gateways by name..."
+                  onSearch={onSearch}
+                  style={{ marginBottom: 16 }}
+                  allowClear
+                />
+              </div>
+              <Tabs defaultActiveKey="1" items={tabItems} />
+            </>
+          )}
+
         </div>
       ) : (
         <Alert message="Please select a server to view its configuration." type="info" showIcon />

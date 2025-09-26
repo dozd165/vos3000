@@ -1,38 +1,64 @@
-/* frontend/src/components/StyledButton.css - THEME MÀU XANH */
-.custom-styled-button {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
+.styled-button {
+  /* Style cơ bản */
+  background-color: #f3f7fe;
+  color: #3b82f6;
+  border: none;
+  border-radius: 8px;
   cursor: pointer;
+  
+  /* Dùng padding để nút tự co giãn theo nội dung */
+  padding: 10px 20px;
+  
+  /* Thêm các thuộc tính để đồng bộ với font chữ của hệ thống */
+  font-family: 'Poppins', sans-serif;
   font-weight: 500;
-  height: 32px;
-  padding: 0 20px;
-  border-radius: 6px;
-  transition: all 0.2s ease-in-out;
-
-  /* THAY ĐỔI: Style nút chính */
-  background-color: #E0F7FA;
-  color: #0096C7;
-  border: 1px solid #ADE8F4;
+  font-size: 14px;
+  
+  /* Hiệu ứng chuyển động mượt mà */
+  transition: all 0.3s ease;
+  
+  /* Ngăn chữ bị xuống dòng */
+  white-space: nowrap;
 }
 
-.custom-styled-button:hover {
-  border-color: #00B4D8;
-  background-color: #CAF0F8;
+/* Hiệu ứng khi di chuột vào */
+.styled-button:hover {
+  background-color: #3b82f6;
+  box-shadow: 0 0 0 4px #3b83f65f;
+  color: #fff;
 }
 
-.custom-styled-button:disabled {
-    cursor: not-allowed;
-    opacity: 0.6;
+/* Style cho nút khi bị vô hiệu hóa (disabled) */
+.styled-button:disabled {
+  background-color: #f0f2f5;
+  color: #b0b0b0;
+  cursor: not-allowed;
+  box-shadow: none;
 }
 
-/* THAY ĐỔI: Style cho nút "danger" (ví dụ: nút Khóa tài khoản) */
-.custom-styled-button.danger {
-  background-color: #FFE5D9;
-  color: #D90429;
-  border-color: #FFB4A2;
+/* Thêm các style này vào cuối file StyledButton.css */
+
+/* Style cho nút khi có class 'link' */
+.styled-button.link {
+  background-color: transparent;
+  color: #1677ff; /* Màu link mặc định của Ant Design */
+  border: none;
+  padding: 0;
+  box-shadow: none;
+  border-radius: 0;
+  font-weight: 400; /* Link thường không in đậm */
 }
-.custom-styled-button.danger:hover {
-  background-color: #FFCDB2;
-  border-color: #EF476F;
+
+/* Hiệu ứng khi di chuột vào nút 'link' */
+.styled-button.link:hover {
+  background-color: transparent;
+  color: #4096ff; /* Màu sáng hơn khi hover */
+  box-shadow: none;
+}
+
+/* Style cho nút 'link' khi bị vô hiệu hóa */
+.styled-button.link:disabled {
+  background-color: transparent;
+  color: #b0b0b0;
+  cursor: not-allowed;
 }
