@@ -10,7 +10,7 @@ import { ArrowLeftOutlined } from '@ant-design/icons';
 import SearchInput from '../components/SearchInput';
 import MappingGatewayActions from '../components/MappingGatewayActions';
 import StyledButton from '../components/StyledButton';
-const { Search } = Input;
+import RoutingGatewayActions from '../components/RoutingGatewayActions'; 
 const { Title } = Typography;
 
 const ConfigureServerPage = () => {
@@ -188,14 +188,19 @@ const ConfigureServerPage = () => {
   );
   
   const renderRgDetailView = () => (
-     <Spin spinning={detailLoading} tip="Loading Details...">
+    <Spin spinning={detailLoading} tip="Loading Details...">
       <div style={{ marginTop: 20, marginBottom: 20 }}></div>
+      {/* SỬA ĐOẠN NÀY: Thêm nút Action bên cạnh nút Back */}
       <StyledButton 
-        icon={<ArrowLeftOutlined />} 
         onClick={() => setSelectedRg(null)} 
-        style={{ marginBottom: 16 }}
       >
         Back 
+      </StyledButton>
+      <StyledButton 
+          onClick={() => setShowRgActionView(true)}
+          style={{ marginLeft: '20px' }}
+      >
+          Action
       </StyledButton>
       {selectedRg && (
         <>
@@ -216,7 +221,7 @@ const ConfigureServerPage = () => {
             <div style={{ marginTop: 20, marginBottom: 20 }}></div>
           </Title>
            <Row gutter={[16, 16]}>
-              <Col xs={24} md={14}>
+              <Col xs={24} md={24}>
               <Descriptions
                 bordered
                 column={1}
@@ -269,13 +274,6 @@ const ConfigureServerPage = () => {
                   </Descriptions.Item>
                 </Descriptions>
             </Col>
-            <Col xs={24} md={10}>
-              <Title level={5}>Actions</Title>
-              <Card>
-                 {/* Chúng ta sẽ thêm các form hành động vào đây ở bước sau */}
-                 <p>Action forms for Rewrite Rules, Prefixes will be here.</p>
-              </Card>
-            </Col>
           </Row>
         </>
       )}
@@ -320,29 +318,36 @@ const ConfigureServerPage = () => {
   };
 
   const rgTabContent = () => {
-    if (!selectedRg) {
-        return (
-    <Table 
-      columns={rgColumns} 
-      dataSource={rgList} 
-      rowKey="name" 
-      loading={listLoading} 
-      bordered 
-      onRow={(record) => ({ onClick: () => handleRgRowClick(record) })}
-      rowClassName="clickable-row"
-    />
-  );
-     } else if (showRgActionView) {
-        // return (
-        //     <RoutingGatewayActions 
-        //         // ... props tương tự
-        //     />
-        // );
-        return <div>Routing Gateway Actions Component will be here.</div>
-    } else {
-        return renderRgDetailView();
-    }
-  };
+      if (!selectedRg) {
+          return (
+              <Table 
+                columns={rgColumns} 
+                dataSource={rgList} 
+                rowKey="name" 
+                loading={listLoading} 
+                bordered 
+                onRow={(record) => ({ onClick: () => handleRgRowClick(record) })}
+                rowClassName="clickable-row"
+              />
+          );
+      } else if (showRgActionView) {
+          // RENDER COMPONENT MỚI Ở ĐÂY
+          return (
+              <RoutingGatewayActions 
+                  serverInfo={selectedServer}
+                  gatewayDetails={selectedRg}
+                  onBack={() => setShowRgActionView(false)}
+                  onUpdateSuccess={() => {
+                      notification.success({ message: 'Gateway updated successfully!' });
+                      setShowRgActionView(false);
+                      handleRgRowClick(selectedRg); // Fetch lại data mới
+                  }}
+              />
+          );
+      } else {
+          return renderRgDetailView();
+      }
+    };
   const tabItems = [
     {
       key: '1',

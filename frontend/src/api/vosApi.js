@@ -210,3 +210,23 @@ export const updateRoutingGateway = async (serverName, rgName, payload, initialH
         throw error;
     }
 };
+
+/** 
+* Thêm danh sách số thực vào một Virtual Key trong Routing Gateway
+ * @param {string} serverName - Tên server
+ * @param {string} rgName - Tên Routing Gateway
+ * @param {string} virtualKey - Số ảo (Key)
+ * @param {Array<string>} newReals - Danh sách số thực cần thêm
+ * @param {string} initialHash - Hash để kiểm tra xung đột
+ * @returns {Promise<Object>}
+ */
+export const addRealNumbersToRule = async (serverName, rgName, virtualKey, newReals, initialHash) => {
+  try {
+    const payload = { new_reals: newReals, initial_hash: initialHash };
+    const response = await apiClient.post(`/servers/${serverName}/routing-gateways/${rgName}/rules/${virtualKey}/reals`, payload);
+    return response.data;
+  } catch (error) {
+    console.error('Error adding reals to rule:', error);
+    throw error;
+  }
+};

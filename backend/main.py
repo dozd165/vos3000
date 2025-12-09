@@ -138,8 +138,16 @@ def get_mg_details(server_name: str, mg_name: str):
 @app.put("/servers/{server_name}/mapping-gateways/{mg_name}", tags=["Gateway Management"])
 def update_mg(server_name: str, mg_name: str, payload: Dict = Body(...)):
     server_info = get_server_info(server_name)
-    initial_hash = payload.pop("initial_hash", None)
-    success, message = update_mapping_gateway(server_info, mg_name, payload, initial_hash)
+    
+    # TRÍCH XUẤT DỮ LIỆU ĐÚNG
+    initial_hash = payload.get("initial_hash")
+    real_update_payload = payload.get("payload_update_data") # Lấy phần dữ liệu thực
+
+    if not real_update_payload:
+        raise HTTPException(status_code=422, detail="Invalid payload structure: missing 'payload_update_data'")
+
+    success, message = update_mapping_gateway(server_info, mg_name, real_update_payload, initial_hash)
+    
     if not success:
         if "CONFLICT" in (message or ""): raise HTTPException(status_code=409, detail=message)
         raise HTTPException(status_code=400, detail=message)
@@ -164,8 +172,16 @@ def get_rg_details(server_name: str, rg_name: str):
 @app.put("/servers/{server_name}/routing-gateways/{rg_name}", tags=["Gateway Management"])
 def update_rg(server_name: str, rg_name: str, payload: Dict = Body(...)):
     server_info = get_server_info(server_name)
-    initial_hash = payload.pop("initial_hash", None)
-    success, message = update_routing_gateway(server_info, rg_name, payload, initial_hash)
+    
+    # TRÍCH XUẤT DỮ LIỆU ĐÚNG
+    initial_hash = payload.get("initial_hash")
+    real_update_payload = payload.get("payload_update_data") # Lấy phần dữ liệu thực
+
+    if not real_update_payload:
+        raise HTTPException(status_code=422, detail="Invalid payload structure: missing 'payload_update_data'")
+
+    success, message = update_routing_gateway(server_info, rg_name, real_update_payload, initial_hash)
+    
     if not success:
         if "CONFLICT" in (message or ""): raise HTTPException(status_code=409, detail=message)
         raise HTTPException(status_code=400, detail=message)
