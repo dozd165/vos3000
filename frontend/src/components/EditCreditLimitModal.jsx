@@ -1,8 +1,9 @@
+// frontend/src/components/EditCreditLimitModal.jsx
 import React, { useState, useEffect } from 'react';
 import { Modal, Form, InputNumber, notification, Typography, Descriptions, Space } from 'antd';
 import { updateCreditLimit } from '../api/vosApi';
 import StyledButton from './StyledButton';
-import StyledRadioGroup from './StyledRadioGroup'; // Dòng import này phải hoạt động nếu tên file ở trên đúng
+import StyledRadioGroup from './StyledRadioGroup';
 
 const { Text } = Typography;
 
@@ -30,23 +31,27 @@ const EditCreditLimitModal = ({ open, onClose, customer, onUpdateSuccess }) => {
             setIsSubmitting(true);
             const currentLimit = Number(customer.limitMoney);
             let newAbsoluteLimit;
+            
+            // Logic tính toán (giữ nguyên)
             switch (operationMode) {
                 case 'add':
-                    if (currentLimit === -1) { notification.warning({ message: 'Cannot add to an unlimited credit limit.' }); setIsSubmitting(false); return; }
+                    if (currentLimit === -1) { notification.warning({ message: 'Cannot add to unlimited.' }); setIsSubmitting(false); return; }
                     newAbsoluteLimit = currentLimit + amount;
                     break;
                 case 'subtract':
-                    if (currentLimit === -1) { notification.warning({ message: 'Cannot subtract from an unlimited credit limit.' }); setIsSubmitting(false); return; }
+                    if (currentLimit === -1) { notification.warning({ message: 'Cannot subtract from unlimited.' }); setIsSubmitting(false); return; }
                     newAbsoluteLimit = currentLimit - amount;
-                    if (newAbsoluteLimit < 0) { notification.error({ message: 'Credit limit cannot be negative.' }); setIsSubmitting(false); return; }
+                    if (newAbsoluteLimit < 0) { notification.error({ message: 'Limit cannot be negative.' }); setIsSubmitting(false); return; }
                     break;
                 default:
                     newAbsoluteLimit = amount;
-                    break;
             }
+
             await updateCreditLimit(customer._server_name_source, customer.account, String(newAbsoluteLimit), customer.hash);
-            notification.success({ message: 'Credit limit updated successfully!' });
-            onUpdateSuccess();
+            
+            // CHỈ CẦN GỬI ACCOUNT LÀ ĐỦ
+            onUpdateSuccess({ account: customer.account });
+
         } catch (error) {
             const errorMsg = error.response?.data?.detail || 'Update failed.';
             notification.error({ message: 'Error', description: errorMsg });
@@ -66,12 +71,7 @@ const EditCreditLimitModal = ({ open, onClose, customer, onUpdateSuccess }) => {
                 </Descriptions.Item>
             </Descriptions>
             <div style={{ marginBottom: 16, display: 'flex', justifyContent: 'center' }}>
-                <StyledRadioGroup
-                    name="operationMode"
-                    options={operationOptions}
-                    value={operationMode}
-                    onChange={setOperationMode}
-                />
+                <StyledRadioGroup name="operationMode" options={operationOptions} value={operationMode} onChange={setOperationMode} />
             </div>
             <Form form={form} layout="vertical">
                 <Form.Item name="amount" label="Value" rules={[{ required: true, message: 'Value is required' }]}>

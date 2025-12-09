@@ -1,5 +1,6 @@
+// frontend/src/components/CustomerDetailsModal.jsx
 import React from 'react';
-import { Modal, Descriptions, Spin, Alert, Tag, Space, notification } from 'antd';
+import { Modal, Descriptions, Spin, Alert, Tag, notification } from 'antd';
 import { updateLockStatus } from '../api/vosApi';
 import StyledButton from './StyledButton';
 
@@ -10,18 +11,17 @@ const CustomerDetailsModal = ({ open, onClose, customer, loading, onUpdateSucces
     try {
       const newStatus = customer.lockType === 1 ? '0' : '1';
       await updateLockStatus(customer._server_name_source, customer.account, newStatus, customer.hash);
-      notification.success({ message: 'Status updated successfully!' });
-      onUpdateSuccess();
+      
+      // CHỈ CẦN GỬI ACCOUNT LÀ ĐỦ
+      onUpdateSuccess({ account: customer.account });
+      
     } catch (error) {
       notification.error({ message: 'Error', description: error.response?.data?.detail || 'Update failed.' });
     }
   };
   
   const renderContent = () => {
-    if (!customer && !loading) {
-      return <Alert message="Could not load customer details." type="error" />;
-    }
-    
+    if (!customer && !loading) return <Alert message="Could not load customer details." type="error" />;
     const isLocked = customer?.lockType === 1;
     return (
       <Descriptions bordered column={1} size="small">
@@ -41,26 +41,18 @@ const CustomerDetailsModal = ({ open, onClose, customer, loading, onUpdateSucces
   return (
     <Modal
       title={loading || !customer ? "Loading..." : `Customer Details: ${customer.name}`}
-      open={open}
-      onCancel={onClose}
-      destroyOnHidden
+      open={open} onCancel={onClose} destroyOnHidden
       footer={
         <div style={{ display: 'flex', justifyContent: 'flex-end', width: '100%', gap: '8px' }}>
-          <StyledButton onClick={onOpenEditLimit} disabled={loading || !customer}>
-            Adjust Credit
-          </StyledButton>
-          <StyledButton onClick={handleToggleLock} disabled={loading || !customer} >
+          <StyledButton onClick={onOpenEditLimit} disabled={loading || !customer}>Adjust Credit</StyledButton>
+          <StyledButton onClick={handleToggleLock} disabled={loading || !customer} danger={customer?.lockType !== 1}>
             {customer?.lockType === 1 ? 'Unlock' : 'Lock'} Account
           </StyledButton>
-          <StyledButton onClick={onClose}>
-            Cancel
-          </StyledButton>
+          <StyledButton onClick={onClose}>Cancel</StyledButton>
         </div>
       }
     >
-      <Spin spinning={loading} tip="Loading Details...">
-        {renderContent()}
-      </Spin>
+      <Spin spinning={loading} tip="Loading Details...">{renderContent()}</Spin>
     </Modal>
   );
 };
