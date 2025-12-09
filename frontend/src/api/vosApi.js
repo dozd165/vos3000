@@ -245,3 +245,33 @@ export const searchNumberInfo = async (numbers) => {
     throw error;
   }
 };
+
+/**
+ * Quét các gateway để tìm các số rác cần dọn dẹp
+ * @param {Array<string>} numbers - Danh sách số cần quét
+ * @returns {Promise<Array>} Danh sách các gateway bị ảnh hưởng
+ */
+export const scanForCleanup = async (numbers) => {
+  try {
+    const response = await apiClient.post('/cleanup/scan', { numbers });
+    return response.data;
+  } catch (error) {
+    console.error('Error scanning for cleanup:', error);
+    throw error;
+  }
+};
+
+/**
+ * Thực thi lệnh dọn dẹp (Update gateway với danh sách số mới)
+ * @param {Array<Object>} tasks - Danh sách các tác vụ dọn dẹp
+ * @returns {Promise<Object>} Kết quả từ server
+ */
+export const executeCleanup = async (tasks) => {
+  try {
+    const response = await apiClient.post('/cleanup/execute', { tasks });
+    return response.data;
+  } catch (error) {
+    console.error('Error executing cleanup:', error);
+    throw error;
+  }
+};
