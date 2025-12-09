@@ -3,7 +3,8 @@ import React from 'react';
 import { Outlet, NavLink } from 'react-router-dom';
 import {
   HomeOutlined, UserOutlined, SearchOutlined, DeleteOutlined,
-  PhoneOutlined, SettingOutlined
+  PhoneOutlined, SettingOutlined,
+  NumberOutlined
 } from '@ant-design/icons';
 import './MainLayout.css';
 
@@ -11,8 +12,7 @@ const menuItems = [
   { path: '/', icon: <HomeOutlined />, name: 'Home' },
   { path: '/customers', icon: <UserOutlined />, name: 'Customers' },
   { path: '/configure', icon: <SettingOutlined />, name: 'Servers' },
-  { path: '/search-number', icon: <SearchOutlined />, name: 'Numbers' },
-  { path: '/cleanup', icon: <DeleteOutlined />, name: 'Cleanup' },
+  { path: '/numbers', icon: <NumberOutlined/>, name: 'Numbers' },
   { path: '/virtual-number', icon: <PhoneOutlined />, name: 'Rewrite Rules' },
 ];
 
