@@ -10,7 +10,9 @@
     5px 5px 15px rgba(0, 0, 0, 0.15),
     -5px -5px 15px rgba(255, 255, 255, 0.8);
   padding: 0.5rem;
-  width: 300px;
+  width: fit-content;
+  min-width: 300px;   /* Giữ độ rộng tối thiểu cho đẹp */
+  max-width: 100%;
   font-size: 14px;
   gap: 0.5rem;
 }
