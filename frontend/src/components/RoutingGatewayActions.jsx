@@ -1,7 +1,7 @@
 // frontend/src/components/RoutingGatewayActions.jsx
 import React, { useState } from 'react';
 import { Button, Form, Input, Radio, notification, Spin, Alert, Typography, Space, Tooltip, Card, Tabs } from 'antd';
-import { ArrowLeftOutlined, PlusOutlined, DeleteOutlined, CalculatorOutlined, ReloadOutlined, NumberOutlined, EditOutlined } from '@ant-design/icons';
+import { ArrowLeftOutlined, PlusOutlined, DeleteOutlined, CalculatorOutlined, ReloadOutlined, NumberOutlined, EditOutlined} from '@ant-design/icons';
 import { updateRoutingGateway, addRealNumbersToRule } from '../api/vosApi';
 
 const { TextArea } = Input;
