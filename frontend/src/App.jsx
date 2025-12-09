@@ -4,6 +4,7 @@ import MainLayout from './components/MainLayout';
 import CustomerManagementPage from './pages/CustomerManagementPage';
 import HomePage from './pages/HomePage';
 import ConfigureServerPage from './pages/ConfigureServerPage';
+import SearchNumberPage from './pages/SearchNumberPage';
 const PlaceholderPage = ({ title }) => <h2>{title} - Coming Soon</h2>;
 
 const router = createBrowserRouter([
@@ -14,7 +15,7 @@ const router = createBrowserRouter([
       { index: true, element: <HomePage /> },
       { path: 'customers', element: <CustomerManagementPage /> },
       { path: 'configure', element: <ConfigureServerPage /> },
-      { path: 'search-number', element: <PlaceholderPage title="Number Information" /> },
+      { path: 'search-number', element: <SearchNumberPage /> },
       { path: 'cleanup', element: <PlaceholderPage title="Gateway Cleanup" /> },
       { path: 'virtual-number', element: <PlaceholderPage title="Virtual Number" /> },
     ],

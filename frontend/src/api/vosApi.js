@@ -230,3 +230,18 @@ export const addRealNumbersToRule = async (serverName, rgName, virtualKey, newRe
     throw error;
   }
 };
+
+/**
+ * Tìm kiếm thông tin số điện thoại trên toàn hệ thống
+ * @param {Array<string>} numbers - Danh sách số điện thoại cần tra cứu
+ * @returns {Promise<Array>} Danh sách kết quả tìm thấy
+ */
+export const searchNumberInfo = async (numbers) => {
+  try {
+    const response = await apiClient.post('/search/number-info', { numbers });
+    return response.data;
+  } catch (error) {
+    console.error('Error searching number info:', error);
+    throw error;
+  }
+};
