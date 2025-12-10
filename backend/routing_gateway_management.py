@@ -6,7 +6,8 @@ from __future__ import annotations
 import logging
 import concurrent.futures
 from typing import Dict, List, Optional, Set, Tuple
-
+from api_client import call_api
+import concurrent.futures
 import config
 from api_client import call_api  # Must return (data, error_message)
 from mapping_gateway_management import (
@@ -635,3 +636,4 @@ def find_number_info_parallel(server_list: List[dict], all_variants: Set[str], o
                 server_name = future_to_server[future]['name']
                 all_findings.append({"_error": f"Error during parallel number search for {server_name}: {exc}", "server_name": server_name})
     return all_findings
+

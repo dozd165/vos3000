@@ -275,3 +275,90 @@ export const executeCleanup = async (tasks) => {
     throw error;
   }
 };
+
+/**
+ * Tìm kiếm định nghĩa Rewrite Rules dựa trên danh sách Virtual Keys
+ * @param {Array<string>} keys - Danh sách các số ảo cần tìm
+ * @returns {Promise<Array>} Danh sách các định nghĩa tìm thấy
+ */
+export const searchRewriteRules = async (keys) => {
+  try {
+    const response = await apiClient.get('/rewrite-rules/search', {
+      params: { keys },
+      // THÊM ĐOẠN NÀY: Để serialize mảng theo chuẩn FastAPI (keys=a&keys=b)
+      paramsSerializer: function(params) {
+        const searchParams = new URLSearchParams();
+        Object.keys(params).forEach(key => {
+          const value = params[key];
+          if (Array.isArray(value)) {
+            value.forEach(v => searchParams.append(key, v));
+          } else {
+            searchParams.append(key, value);
+          }
+        });
+        return searchParams.toString();
+      }
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error searching rewrite rules:', error);
+    throw error;
+  }
+};
+
+/**
+ * Thay thế hoàn toàn danh sách số thực cho một Virtual Key cụ thể
+ * @param {string} serverName - Tên server
+ * @param {string} rgName - Tên Routing Gateway
+ * @param {string} virtualKey - Số ảo cần sửa
+ * @param {Array<string>} newRealNumbers - Danh sách số thực MỚI (sẽ đè lên cũ)
+ * @param {string} initialHash - Hash để kiểm tra xung đột (nếu có)
+ */
+export const replaceRealNumbersForRule = async (serverName, rgName, virtualKey, newRealNumbers, initialHash) => {
+  try {
+    // 1. Lấy thông tin Gateway hiện tại
+    const rgDetails = await getRoutingGatewayDetails(serverName, rgName);
+    
+    // 2. Parse chuỗi rule hiện tại: "key1:val1;val2,key2:val3"
+    const currentRulesStr = rgDetails.rewriteRulesInCaller || "";
+    const ruleMap = {};
+    
+    if (currentRulesStr) {
+        currentRulesStr.split(',').forEach(segment => {
+            const [k, v] = segment.split(':');
+            if (k && v) ruleMap[k.trim()] = v.trim();
+        });
+    }
+
+    // 3. Cập nhật rule cho key đang chọn
+    if (newRealNumbers.length === 0) {
+        // Nếu danh sách rỗng -> Xóa rule này khỏi map (hoặc để là hetso tùy logic, ở đây ta xóa luôn rule)
+        delete ruleMap[virtualKey];
+    } else {
+        // Nếu có số -> Cập nhật (nối bằng dấu chấm phẩy)
+        // Nếu danh sách có 1 phần tử là 'hetso' -> Giữ nguyên
+        const valStr = (newRealNumbers.length === 1 && newRealNumbers[0] === 'hetso') 
+            ? 'hetso' 
+            : newRealNumbers.join(';');
+        ruleMap[virtualKey] = valStr;
+    }
+
+    // 4. Build lại chuỗi rule tổng
+    const newRulesStr = Object.entries(ruleMap)
+        .map(([k, v]) => `${k}:${v}`)
+        .join(',');
+
+    // 5. Gửi update lên Server
+    const payload = {
+        ...rgDetails,
+        rewriteRulesInCaller: newRulesStr
+    };
+
+    const response = await updateRoutingGateway(serverName, rgName, payload, initialHash || rgDetails.hash);
+    return response;
+
+  } catch (error) {
+    console.error('Error replacing rule:', error);
+    throw error;
+  }
+};

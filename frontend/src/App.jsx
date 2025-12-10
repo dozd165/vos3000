@@ -5,6 +5,8 @@ import CustomerManagementPage from './pages/CustomerManagementPage';
 import HomePage from './pages/HomePage';
 import ConfigureServerPage from './pages/ConfigureServerPage';
 import GatewayCleanupPage from './pages/GatewayCleanupPage';
+import RewriteRulePage from './pages/RewriteRulePage'
+
 const PlaceholderPage = ({ title }) => <h2>{title} - Coming Soon</h2>;
 
 const router = createBrowserRouter([
@@ -16,7 +18,7 @@ const router = createBrowserRouter([
       { path: 'customers', element: <CustomerManagementPage /> },
       { path: 'configure', element: <ConfigureServerPage /> },
       { path: 'numbers', element: <GatewayCleanupPage /> },
-      { path: 'virtual-number', element: <PlaceholderPage title="Virtual Number" /> },
+      { path: 'virtual-number', element: <RewriteRulePage /> },
     ],
   },
 ]);
