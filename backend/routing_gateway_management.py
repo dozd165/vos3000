@@ -1,13 +1,11 @@
-
-# routing_gateway_management_backend.py
-# Backend-only helpers for Routing Gateway management (no Streamlit/UI dependencies).
+# backend/routing_gateway_management.py
+# Backend-only helpers for Routing Gateway management (no Streamlit; no pandas).
 from __future__ import annotations
 
 import logging
 import concurrent.futures
 from typing import Dict, List, Optional, Set, Tuple
-from api_client import call_api
-import concurrent.futures
+
 import config
 from api_client import call_api  # Must return (data, error_message)
 from mapping_gateway_management import (
@@ -31,10 +29,6 @@ Json = Dict[str, object]
 # Internal helpers
 # ------------------------------
 def _extract_server(server_info: dict) -> Tuple[Optional[str], Optional[str], Optional[str]]:
-    """
-    Validate and extract base_url & server_name from server_info.
-    Returns (base_url, server_name, error).
-    """
     if not isinstance(server_info, dict):
         return None, None, "Error: server_info must be a dict."
     base_url = server_info.get("url")
@@ -101,9 +95,6 @@ def update_routing_gateway(
     payload_update_data: dict,
     initial_hash: Optional[str] = None,
 ) -> Tuple[bool, Optional[str]]:
-    """
-    Update an RG via ModifyGatewayRouting with optimistic concurrency (optional).
-    """
     base_url, server_name, err = _extract_server(server_info)
     if err:
         return False, err
@@ -114,7 +105,6 @@ def update_routing_gateway(
     if not payload_update_data:
         return False, "Error: Update payload cannot be empty."
 
-    # Conflict check
     if initial_hash:
         latest_data, error_fetch = get_routing_gateway_details(server_info, rg_name_param)
         if error_fetch or not latest_data:
@@ -133,10 +123,6 @@ def update_routing_gateway(
 # Virtual Number + Rewrite Rule Management
 # ------------------------------
 def get_all_virtual_number_definitions_backend() -> Tuple[Dict[str, List[dict]], Optional[str]]:
-    """
-    Aggregate all VN definitions across servers (from RG.rewriteRulesInCaller).
-    Returns (map: virtual_key -> list[definition], error).
-    """
     all_virtuals_map: Dict[str, List[dict]] = {}
     error_messages: List[str] = []
     active_servers_list = config.VOS_SERVERS
@@ -177,14 +163,19 @@ def get_all_virtual_number_definitions_backend() -> Tuple[Dict[str, List[dict]],
 
 def find_definitions_for_virtual_keys_backend(virtual_keys_to_find: List[str]) -> Tuple[List[dict], Optional[str]]:
     """
-    Lookup VN definitions across servers for a given list of virtual keys.
+    Lookup VN definitions across servers based on input keys.
+    UPDATED: Performs a PARTIAL match (contains) instead of exact match.
+    If input is "5100", it finds "510016", "510024", etc.
     """
     if not virtual_keys_to_find:
         return [], "Virtual number key list to find cannot be empty."
 
     definitions_list: List[dict] = []
     error_messages: List[str] = []
-    keys_set = set(virtual_keys_to_find)
+    
+    # Chuẩn hóa danh sách tìm kiếm: xóa khoảng trắng, đưa về chữ thường
+    clean_search_terms = [k.strip().lower() for k in virtual_keys_to_find if k.strip()]
+    
     active_servers_list = config.VOS_SERVERS
 
     for server_info_item in active_servers_list:
@@ -205,9 +196,18 @@ def find_definitions_for_virtual_keys_backend(virtual_keys_to_find: List[str]) -
                 continue
 
             parsed_rules = parse_vos_rewrite_rules(rewrite_rules_str)
-            found_keys = keys_set.intersection(parsed_rules.keys())
+            
+            # --- LOGIC MỚI: TÌM KIẾM GẦN ĐÚNG (CONTAINS) ---
+            found_keys_in_this_rg = set()
+            for rule_key in parsed_rules.keys():
+                rule_key_lower = rule_key.lower()
+                for search_term in clean_search_terms:
+                    # Nếu từ khóa tìm kiếm nằm trong Key của Rule -> Lấy
+                    if search_term in rule_key_lower:
+                        found_keys_in_this_rg.add(rule_key)
+            # -----------------------------------------------
 
-            for key in found_keys:
+            for key in found_keys_in_this_rg:
                 reals = parsed_rules[key]
                 is_hetso = reals == ["hetso"]
                 reals_count = 0 if is_hetso or not reals else len(reals)
@@ -233,41 +233,29 @@ def add_real_numbers_to_rule_backend(
     new_real_numbers_to_add: List[str],
     initial_hash: Optional[str] = None,
 ) -> Tuple[bool, str]:
-    """
-    Add real numbers to an existing rewrite rule (no overwrite). De-duplicates and preserves order.
-    Applies transform_real_number_for_vos_storage before persisting.
-    Supports optional optimistic concurrency via initial_hash.
-    """
     if not new_real_numbers_to_add:
         return False, "The list of real numbers to add cannot be empty."
 
-    # Step 1: get current RG details
     rg_details, error = get_routing_gateway_details(server_info, rg_name)
     if error or not rg_details:
         return False, f"Could not retrieve details for RG '{rg_name}'. Error: {error or 'no data'}"
 
-    # Step 2: parse existing rules
     rules_dict = parse_vos_rewrite_rules(rg_details.get("rewriteRulesInCaller", "") or "")
 
-    # Step 3: prepare current list
     current_reals = rules_dict.get(virtual_key, [])
     if current_reals == ["hetso"]:
         current_reals = []
 
-    # Step 4: normalize new inputs
     normalized_new = [transform_real_number_for_vos_storage(x) for x in new_real_numbers_to_add if x and x.strip()]
     combined_reals = current_reals + normalized_new
 
-    # Step 5: de-duplicate with order
     seen: Set[str] = set()
     unique_reals = [x for x in combined_reals if not (x in seen or seen.add(x))]
 
-    # Step 6: rebuild rules and payload
     rules_dict[virtual_key] = unique_reals
     payload = dict(rg_details)
     payload["rewriteRulesInCaller"] = format_rewrite_rules_for_vos(rules_dict)
 
-    # Step 7: optimistic concurrency (hash from original rg_details if not provided)
     if not initial_hash:
         initial_hash = generate_object_hash(rg_details)
 
@@ -636,4 +624,3 @@ def find_number_info_parallel(server_list: List[dict], all_variants: Set[str], o
                 server_name = future_to_server[future]['name']
                 all_findings.append({"_error": f"Error during parallel number search for {server_name}: {exc}", "server_name": server_name})
     return all_findings
-

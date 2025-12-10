@@ -3,14 +3,14 @@ import React, { useState } from 'react';
 import { 
   Input, Card, Typography, notification, Spin, Empty, 
   Tag, Badge, Modal, Tabs, Form, Button, Alert, Space, 
-  Radio, InputNumber, Divider, Row, Col 
+  Radio, InputNumber, Divider, Row, Col, Tooltip 
 } from 'antd';
 import { 
   DatabaseOutlined, NodeIndexOutlined, 
   PhoneOutlined, PlusCircleOutlined, 
   EyeOutlined, SwapOutlined, SearchOutlined, 
   ArrowRightOutlined, CheckCircleOutlined, StopOutlined,
-  CopyOutlined
+  BranchesOutlined
 } from '@ant-design/icons';
 import PageTitle from '../components/PageTitle';
 import { 
@@ -23,6 +23,7 @@ const { Text, Paragraph } = Typography;
 const { TextArea } = Input;
 
 // --- COMPONENT CON: StyledTextArea ---
+// Giao diện Text Area nhưng nhìn giống Input search (bo tròn, nền xám)
 const StyledTextArea = ({ value, onChange, placeholder, rows = 1, onPressEnter, style, autoSize }) => {
   const [focused, setFocused] = useState(false);
   return (
@@ -98,6 +99,7 @@ const RewriteRulePage = () => {
     const value = mainSearchInput;
     if (!value || !value.trim()) return;
     
+    // Tách input thành mảng keys
     const keys = value.split(/[\n,; ]+/).filter(k => k.trim());
     if (keys.length === 0) return;
 
@@ -121,6 +123,23 @@ const RewriteRulePage = () => {
       notification.error({ message: 'Search Error', description: error.message });
     } finally {
       setLoading(false);
+    }
+  };
+
+  // --- HÀM MỚI: TÌM NHANH KEY BK ---
+  const handleCheckBK = (baseKey) => {
+    const bkKey = `${baseKey}bk`;
+    const currentKeys = mainSearchInput.split(/[\n,; ]+/).filter(k => k.trim());
+    
+    if (!currentKeys.includes(bkKey)) {
+        const newKeys = [...currentKeys, bkKey];
+        // Cập nhật UI và tìm kiếm lại
+        setMainSearchInput(newKeys.join(', ')); 
+        setSearchKeys(newKeys);
+        executeSearch(newKeys);
+        notification.info({ message: 'Searching...', description: `Checking for ${bkKey}` });
+    } else {
+        notification.warning({ message: 'Already Displayed', description: `Key ${bkKey} is already in the list.` });
     }
   };
 
@@ -242,7 +261,8 @@ const RewriteRulePage = () => {
     }
   };
 
-  // --- RENDER CARD (MÀU SẮC ĐÃ ĐƯỢC KHÔI PHỤC) ---
+  // --- RENDER CARD ---
+  // Đã khôi phục màu xanh nhạt (#f6ffed) cho thẻ active và đỏ nhạt (#fff1f0) cho thẻ block
   const renderGatewayCard = (record) => {
     const isHetso = record.is_hetso;
     const cardStyle = isHetso ? {
@@ -251,7 +271,7 @@ const RewriteRulePage = () => {
         borderColor: '#ffa39e'           
     } : {
         borderLeft: '5px solid #52c41a', // Xanh lá đậm
-        background: '#f6ffed',           // Nền xanh lá nhạt (ĐÃ SỬA LẠI ĐÚNG MÀU)
+        background: '#f6ffed',           // Nền xanh lá nhạt
         borderColor: '#b7eb8f'           
     };
 
@@ -318,6 +338,7 @@ const RewriteRulePage = () => {
                 <Empty description={<span style={{ color: '#ff4d4f' }}>GATEWAY BLOCKED (HETSO)</span>} image={<StopOutlined style={{ fontSize: 40, color: '#ffccc7' }} />} />
             ) : (
                 <div style={{ padding: '8px', background: '#fff', borderRadius: '8px', border: '1px solid #f0f0f0' }}>
+                    {/* Hiển thị danh sách số dạng chuỗi phân cách bởi dấu phẩy */}
                     <Paragraph 
                         copyable 
                         style={{ fontSize: '14px', fontFamily: 'monospace', color: '#595959', margin: 0, wordBreak: 'break-all' }}
@@ -472,11 +493,28 @@ const RewriteRulePage = () => {
                     style={{ marginBottom: 20, borderRadius: '12px', boxShadow: '0 2px 8px rgba(0,0,0,0.08)' }}
                     styles={{ body: { padding: '16px' } }}
                     title={
-                        <Space>
-                            <PhoneOutlined style={{ color: '#1890ff' }} /> 
-                            <span style={{ fontSize: '16px' }}>Virtual Key: <Tag color="gold" style={{ fontSize: '15px' }}>{key}</Tag></span>
-                            <Badge count={items.length} showZero color="#faad14" title="Gateways Count" />
-                        </Space>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <Space>
+                                <PhoneOutlined style={{ color: '#1890ff' }} /> 
+                                <span style={{ fontSize: '16px' }}>Virtual Key: <Tag color="gold" style={{ fontSize: '15px' }}>{key}</Tag></span>
+                                <Badge count={items.length} showZero color="#faad14" title="Gateways Count" />
+                            </Space>
+                            
+                            {/* Nút Check BK: Chỉ hiện nếu key hiện tại không phải là key bk */}
+                            {!key.toLowerCase().endsWith('bk') && (
+                                <Tooltip title={`Find related key: ${key}bk`}>
+                                    <Button 
+                                        type="dashed" 
+                                        size="small" 
+                                        icon={<BranchesOutlined />} 
+                                        onClick={() => handleCheckBK(key)}
+                                        style={{ color: '#1890ff', borderColor: '#1890ff' }}
+                                    >
+                                        Check BK
+                                    </Button>
+                                </Tooltip>
+                            )}
+                        </div>
                     }
                 >
                     <Row gutter={[16, 12]}>

@@ -1,7 +1,7 @@
 // frontend/src/components/MappingGatewayActions.jsx
-import React, { useState } from 'react';
-import { Button, Form, Input, notification, Spin, Typography, Space } from 'antd';
-import { ArrowLeftOutlined } from '@ant-design/icons';
+import React, { useState, useMemo } from 'react';
+import { Button, Form, Input, notification, Spin, Typography, Alert, Row, Col } from 'antd';
+import { ArrowLeftOutlined, CheckCircleOutlined, WarningOutlined } from '@ant-design/icons';
 import { updateMappingGateway } from '../api/vosApi';
 
 const { TextArea } = Input;
@@ -10,48 +10,47 @@ const { Title, Text } = Typography;
 const MappingGatewayActions = ({ serverInfo, gatewayDetails, onBack, onUpdateSuccess }) => {
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
+  const [inputValue, setInputValue] = useState('');
 
-  const handleSubmit = async (values) => {
-    if (!values.numbers_input || !values.numbers_input.trim()) {
-      notification.warning({ message: 'Input required', description: 'Please enter numbers.' });
+  const analysis = useMemo(() => {
+    if (!inputValue.trim()) return { newNumbers: [], duplicates: [] };
+    
+    const currentPrefixes = gatewayDetails.calloutCallerPrefixes 
+        ? gatewayDetails.calloutCallerPrefixes.split(',').filter(Boolean) 
+        : [];
+    const currentSet = new Set(currentPrefixes);
+
+    const inputs = inputValue.trim().split(/[,\s\n]+/).filter(Boolean);
+    const uniqueInputs = [...new Set(inputs)];
+
+    const duplicates = uniqueInputs.filter(num => currentSet.has(num));
+    const newNumbers = uniqueInputs.filter(num => !currentSet.has(num));
+
+    return { newNumbers, duplicates };
+  }, [inputValue, gatewayDetails]);
+
+  const handleSubmit = async () => {
+    const { newNumbers } = analysis;
+    if (newNumbers.length === 0) {
+      notification.warning({ message: 'No new numbers', description: 'All input numbers already exist.' });
       return;
     }
 
     setLoading(true);
     try {
-      const inputNumbers = values.numbers_input.trim().split(/[,\s\n]+/).filter(Boolean);
       const currentPrefixes = gatewayDetails.calloutCallerPrefixes 
           ? gatewayDetails.calloutCallerPrefixes.split(',').filter(Boolean) 
           : [];
+      const finalPrefixes = [...currentPrefixes, ...newNumbers];
+      const payload = { ...gatewayDetails, calloutCallerPrefixes: finalPrefixes.join(',') };
       
-      const originalSet = new Set(currentPrefixes);
-      let newPrefixes = [...currentPrefixes];
-      let addedCount = 0;
+      if (gatewayDetails.lockType === 3 && finalPrefixes.length > 0) payload.lockType = 0; 
 
-      // Logic ADD ONLY
-      const toAdd = inputNumbers.filter(num => !originalSet.has(num));
-      if (toAdd.length > 0) {
-        newPrefixes.push(...toAdd);
-        addedCount = toAdd.length;
-      }
-
-      if (addedCount > 0) {
-        const payload = { 
-            ...gatewayDetails, 
-            calloutCallerPrefixes: newPrefixes.join(',') 
-        };
-        
-        // Auto unlock if previously locked by no number (LockType 3)
-        if (gatewayDetails.lockType === 3 && newPrefixes.length > 0) {
-            payload.lockType = 0; 
-        }
-
-        await updateMappingGateway(serverInfo, gatewayDetails.name, payload, gatewayDetails.hash);
-        form.resetFields();
-        onUpdateSuccess(); 
-      } else {
-        notification.info({ message: 'No new numbers added', description: 'All numbers already exist.' });
-      }
+      await updateMappingGateway(serverInfo, gatewayDetails.name, payload, gatewayDetails.hash);
+      form.resetFields();
+      setInputValue('');
+      onUpdateSuccess(); 
+      notification.success({ message: 'Success', description: `Added ${newNumbers.length} new prefixes.` });
     } catch (error) {
       notification.error({ message: 'Update Failed', description: error.response?.data?.detail || error.message });
     } finally {
@@ -61,21 +60,41 @@ const MappingGatewayActions = ({ serverInfo, gatewayDetails, onBack, onUpdateSuc
 
   return (
     <Spin spinning={loading}>
-      <Button icon={<ArrowLeftOutlined />} onClick={onBack} style={{ marginBottom: 16 }}>
-        Back to Details
-      </Button>
-      <Title level={4}>Add Prefixes: <Text type="success">{gatewayDetails.name}</Text></Title>
+      <Button icon={<ArrowLeftOutlined />} onClick={onBack} style={{ marginBottom: 16 }}>Back to Details</Button>
+      <Title level={4}>Add Prefixes (Mapping): <Text type="success">{gatewayDetails.name}</Text></Title>
 
       <Form form={form} onFinish={handleSubmit} layout="vertical">
-        <Form.Item 
-            name="numbers_input"
-            label="Enter Callout Caller Prefixes (comma, space, or newline separated)"
-            rules={[{ required: true, message: 'Please input numbers!' }]}
-        >
-            <TextArea rows={8} placeholder="e.g. 8491, 8494..."/>
+        <Form.Item label="Enter Callout Caller Prefixes (comma, space, or newline separated)" required>
+            <TextArea rows={6} placeholder="e.g. 8491, 8494..." value={inputValue} onChange={(e) => setInputValue(e.target.value)} />
         </Form.Item>
-        <Button type="primary" htmlType="submit" block loading={loading} size="large">
-            Add Prefixes
+
+        {inputValue && (
+            <div style={{ marginBottom: 16 }}>
+                <Row gutter={[16, 16]}>
+                    <Col span={12}>
+                        <Alert
+                            message="Valid New Numbers"
+                            type="success"
+                            showIcon
+                            icon={<CheckCircleOutlined />}
+                            description={<Text strong style={{ fontSize: '18px' }}>{analysis.newNumbers.length}</Text>}
+                        />
+                    </Col>
+                    <Col span={12}>
+                        <Alert
+                            message="Duplicates (Skipped)"
+                            type={analysis.duplicates.length > 0 ? "warning" : "info"}
+                            showIcon
+                            icon={<WarningOutlined />}
+                            description={<Text strong style={{ fontSize: '18px' }}>{analysis.duplicates.length}</Text>}
+                        />
+                    </Col>
+                </Row>
+            </div>
+        )}
+
+        <Button type="primary" htmlType="submit" block loading={loading} size="large" disabled={!inputValue || analysis.newNumbers.length === 0}>
+            {analysis.newNumbers.length > 0 ? `Add ${analysis.newNumbers.length} New Prefixes` : "No new numbers to add"}
         </Button>
       </Form>
     </Spin>
